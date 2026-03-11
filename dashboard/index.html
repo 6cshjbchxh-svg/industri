@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="no" class="auth-pending">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard | Industri Tegning</title>
+    <link rel="stylesheet" href="../style.css?v=20260311-22" />
+    <style>
+      html.auth-pending body {
+        visibility: hidden;
+      }
+      .dash-shell {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 16px;
+      }
+      .dash-card {
+        width: min(760px, 100%);
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        box-shadow: 0 14px 40px rgba(15, 23, 42, 0.08);
+        padding: 18px;
+        display: grid;
+        gap: 14px;
+      }
+      .dash-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .dash-meta {
+        color: #334155;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="dash-shell">
+      <section class="dash-card">
+        <h1>Dashboard</h1>
+        <p class="subtitle">Innlogget tilgang til arbeids- og industritegning.</p>
+        <div id="userInfo" class="dash-meta">Laster bruker...</div>
+        <div class="dash-actions">
+          <a id="openAppLink" class="primary" href="../">Åpne tegneverktøy</a>
+          <button id="logoutBtn" class="secondary" type="button">Logg ut</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../supabase-config.js?v=20260311-22"></script>
+    <script src="../auth-client.js?v=20260311-22"></script>
+    <script>
+      const userInfo = document.getElementById('userInfo');
+      const logoutBtn = document.getElementById('logoutBtn');
+      const openAppLink = document.getElementById('openAppLink');
+
+      (async () => {
+        const access = await window.AppAuth?.requireAppAccess({ redirect: true });
+        if (!access?.access) return;
+
+        openAppLink.href = window.AppAuth.withBase('/');
+        const companyText = access.company?.name ? ` | Firma: ${access.company.name}` : '';
+        userInfo.textContent = `Innlogget som: ${access.session.user.email || 'ukjent bruker'} | Rolle: ${access.role}${companyText}`;
+        document.documentElement.classList.remove('auth-pending');
+      })();
+
+      logoutBtn.addEventListener('click', async () => {
+        await window.AppAuth.signOut();
+        window.location.replace(window.AppAuth.buildLoginUrl());
+      });
+    </script>
+  </body>
+</html>
